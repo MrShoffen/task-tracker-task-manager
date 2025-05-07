@@ -10,4 +10,6 @@ public interface TaskRepository extends ReactiveCrudRepository<Task, UUID> {
 
     Flux<Task> findAllByUserIdAndWorkspaceIdAndDeskId(UUID userId, UUID workspaceId, UUID deskId);
 
+    Flux<Task> findAllByWorkspaceId(UUID workspaceId);
+
 }

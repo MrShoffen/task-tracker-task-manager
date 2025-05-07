@@ -2,6 +2,9 @@ package org.mrshoffen.tasktracker.task.advice;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.mrshoffen.tasktracker.commons.web.exception.AccessDeniedException;
+import org.mrshoffen.tasktracker.commons.web.exception.EntityAlreadyExistsException;
+import org.mrshoffen.tasktracker.commons.web.exception.EntityNotFoundException;
 import org.mrshoffen.tasktracker.task.exception.TaskAlreadyExistsException;
 import org.mrshoffen.tasktracker.task.exception.TaskStructureException;
 import org.springframework.http.HttpStatus;
@@ -15,19 +18,12 @@ import reactor.core.publisher.Mono;
 
 import java.util.stream.Collectors;
 
-import static org.springframework.http.HttpStatus.CONFLICT;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 
 @Slf4j
 @RestControllerAdvice
 public class DeskControllerAdvice {
-
-
-    @ExceptionHandler(TaskStructureException.class)
-    public Mono<ResponseEntity<ProblemDetail>> handleTaskStructureException(TaskStructureException e) {
-        ProblemDetail problem = generateProblemDetail(NOT_FOUND, e);
-        return Mono.just(ResponseEntity.status(NOT_FOUND).body(problem));
-    }
 
     @ExceptionHandler(WebExchangeBindException.class)
     public Mono<ResponseEntity<ProblemDetail>> handleValidationErrors(WebExchangeBindException e) {
@@ -40,15 +36,20 @@ public class DeskControllerAdvice {
         return Mono.just(ResponseEntity.badRequest().body(problemDetail));
     }
 
-    //
-//    @ExceptionHandler(DeskNotFoundException.class)
-//    public Mono<ResponseEntity<ProblemDetail>> handleTaskNotFoundException(DeskNotFoundException e) {
-//        ProblemDetail problem = generateProblemDetail(NOT_FOUND, e);
-//        return Mono.just(ResponseEntity.status(NOT_FOUND).body(problem));
-//    }
-//
-    @ExceptionHandler(TaskAlreadyExistsException.class)
-    public Mono<ResponseEntity<ProblemDetail>> handleTaskAlreadyExistsException(TaskAlreadyExistsException e) {
+    @ExceptionHandler(AccessDeniedException.class)
+    public Mono<ResponseEntity<ProblemDetail>> handleTaskStructureException(AccessDeniedException e) {
+        ProblemDetail problem = generateProblemDetail(FORBIDDEN, e);
+        return Mono.just(ResponseEntity.status(FORBIDDEN).body(problem));
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public Mono<ResponseEntity<ProblemDetail>> handleTaskNotFoundException(EntityNotFoundException e) {
+        ProblemDetail problem = generateProblemDetail(NOT_FOUND, e);
+        return Mono.just(ResponseEntity.status(NOT_FOUND).body(problem));
+    }
+
+    @ExceptionHandler(EntityAlreadyExistsException.class)
+    public Mono<ResponseEntity<ProblemDetail>> handleTaskAlreadyExistsException(EntityAlreadyExistsException e) {
         ProblemDetail problem = generateProblemDetail(CONFLICT, e);
         return Mono.just(ResponseEntity.status(CONFLICT).body(problem));
     }

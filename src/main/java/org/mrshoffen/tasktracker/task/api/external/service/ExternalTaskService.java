@@ -1,13 +1,13 @@
-package org.mrshoffen.tasktracker.task.service;
+package org.mrshoffen.tasktracker.task.api.external.service;
 
 import lombok.RequiredArgsConstructor;
 import org.mrshoffen.tasktracker.commons.web.dto.TaskResponseDto;
-import org.mrshoffen.tasktracker.task.exception.TaskAlreadyExistsException;
+import org.mrshoffen.tasktracker.commons.web.exception.EntityAlreadyExistsException;
+import org.mrshoffen.tasktracker.task.client.DeskClient;
+import org.mrshoffen.tasktracker.task.mapper.TaskMapper;
 import org.mrshoffen.tasktracker.task.model.dto.TaskCreateDto;
 import org.mrshoffen.tasktracker.task.model.entity.Task;
 import org.mrshoffen.tasktracker.task.repository.TaskRepository;
-import org.mrshoffen.tasktracker.task.util.client.DeskClient;
-import org.mrshoffen.tasktracker.task.util.mapper.TaskMapper;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -17,7 +17,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class TaskService {
+public class ExternalTaskService {
 
     private final TaskMapper taskMapper;
 
@@ -25,9 +25,9 @@ public class TaskService {
 
     private final DeskClient deskClient;
 
-    public Mono<TaskResponseDto> createTask(TaskCreateDto dto, UUID userId, UUID workspaceId, UUID deskId) {
+    public Mono<TaskResponseDto> createTaskOnUserDesk(TaskCreateDto dto, UUID userId, UUID workspaceId, UUID deskId) {
         return deskClient
-                .validateDeskStructure(userId, workspaceId, deskId)
+                .ensureUserOwnsDesk(userId, workspaceId, deskId)
                 .then(
                         Mono.defer(() -> {
                             Task task = taskMapper.toTask(dto, userId, workspaceId, deskId);
@@ -35,7 +35,7 @@ public class TaskService {
                         })
                 )
                 .onErrorMap(DataIntegrityViolationException.class, e ->
-                        new TaskAlreadyExistsException(
+                        new EntityAlreadyExistsException(
                                 "Задача с именем '%s' уже существует на доске '%s'"
                                         .formatted(dto.name(), deskId)
                         )
@@ -43,9 +43,9 @@ public class TaskService {
                 .map(taskMapper::toTaskResponse);
     }
 
-    public Flux<TaskResponseDto> getAllTasksInDesk(UUID userId, UUID workspaceId, UUID deskId) {
+    public Flux<TaskResponseDto> getAllTasksOnUsersDesk(UUID userId, UUID workspaceId, UUID deskId) {
         return deskClient
-                .validateDeskStructure(userId, workspaceId, deskId)
+                .ensureUserOwnsDesk(userId, workspaceId, deskId)
                 .thenMany(
                         taskRepository
                                 .findAllByUserIdAndWorkspaceIdAndDeskId(userId, workspaceId, deskId)

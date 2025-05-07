@@ -1,4 +1,4 @@
-package org.mrshoffen.tasktracker.task.util.mapper;
+package org.mrshoffen.tasktracker.task.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;

@@ -19,8 +19,8 @@ repositories {
 }
 
 dependencies {
-    implementation platform('com.github.MrShoffen:task-tracker-dependencies-versions:1.7.0')
-    annotationProcessor platform('com.github.MrShoffen:task-tracker-dependencies-versions:1.7.0')
+    implementation platform('com.github.MrShoffen:task-tracker-dependencies-versions:1.8.0')
+    annotationProcessor platform('com.github.MrShoffen:task-tracker-dependencies-versions:1.8.0')
 
     implementation 'com.github.MrShoffen:task-tracker-commons'
 
