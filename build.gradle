@@ -19,8 +19,8 @@ repositories {
 }
 
 dependencies {
-    implementation platform('com.github.MrShoffen:task-tracker-dependencies-versions:1.8.0')
-    annotationProcessor platform('com.github.MrShoffen:task-tracker-dependencies-versions:1.8.0')
+    implementation platform('com.github.MrShoffen:task-tracker-dependencies-versions:1.9.1')
+    annotationProcessor platform('com.github.MrShoffen:task-tracker-dependencies-versions:1.9.1')
 
     implementation 'com.github.MrShoffen:task-tracker-commons'
 
@@ -28,6 +28,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.kafka:spring-kafka'
 
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
     implementation 'org.springframework.cloud:spring-cloud-starter-config'

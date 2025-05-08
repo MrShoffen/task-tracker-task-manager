@@ -5,8 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.mrshoffen.tasktracker.commons.web.exception.AccessDeniedException;
 import org.mrshoffen.tasktracker.commons.web.exception.EntityAlreadyExistsException;
 import org.mrshoffen.tasktracker.commons.web.exception.EntityNotFoundException;
-import org.mrshoffen.tasktracker.task.exception.TaskAlreadyExistsException;
-import org.mrshoffen.tasktracker.task.exception.TaskStructureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +17,6 @@ import reactor.core.publisher.Mono;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.*;
-import static org.springframework.http.HttpStatus.FORBIDDEN;
 
 @Slf4j
 @RestControllerAdvice

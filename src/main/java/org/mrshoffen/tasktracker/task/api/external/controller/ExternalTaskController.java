@@ -9,6 +9,7 @@ import org.mrshoffen.tasktracker.task.model.dto.TaskCreateDto;
 import org.mrshoffen.tasktracker.task.model.dto.links.TaskDtoLinksInjector;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -58,6 +59,16 @@ public class ExternalTaskController {
         return taskService
                 .getAllTasksOnUsersDesk(userId, workspaceId, deskId)
                 .map(linksInjector::injectLinks);
+    }
+
+    @DeleteMapping("/{taskId}")
+    Mono<ResponseEntity<Void>> deleteUserTaskById(@RequestHeader(AUTHORIZED_USER_HEADER_NAME) UUID userId,
+                                                  @PathVariable("workspaceId") UUID workspaceId,
+                                                  @PathVariable("deskId") UUID deskId,
+                                                  @PathVariable("taskId") UUID taskId) {
+        return taskService
+                .deleteUserTaskById(userId, workspaceId, deskId, taskId)
+                .then(Mono.just(ResponseEntity.noContent().build()));
     }
 
 }

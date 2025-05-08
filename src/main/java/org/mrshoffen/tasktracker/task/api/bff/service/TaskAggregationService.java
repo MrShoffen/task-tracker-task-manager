@@ -1,6 +1,7 @@
 package org.mrshoffen.tasktracker.task.api.bff.service;
 
 import lombok.RequiredArgsConstructor;
+import org.mrshoffen.tasktracker.commons.web.dto.DeskResponseDto;
 import org.mrshoffen.tasktracker.commons.web.dto.TaskResponseDto;
 import org.mrshoffen.tasktracker.task.mapper.TaskMapper;
 import org.mrshoffen.tasktracker.task.repository.TaskRepository;
@@ -20,6 +21,12 @@ public class TaskAggregationService {
     public Flux<TaskResponseDto> getAllTasksInWorkspace(UUID workspaceId) {
         return taskRepository
                 .findAllByWorkspaceId(workspaceId)
+                .map(taskMapper::toTaskResponse);
+    }
+
+    public Flux<TaskResponseDto> getAllTasksInDesk(UUID workspaceId, UUID deskId) {
+        return taskRepository
+                .findAllByWorkspaceIdAndDeskId(workspaceId, deskId)
                 .map(taskMapper::toTaskResponse);
     }
 }

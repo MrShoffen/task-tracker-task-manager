@@ -34,6 +34,23 @@ spring:
   config:
     import: optional:configserver:http://${CONFIG_SERVER_USER}:${CONFIG_SERVER_PASSWORD}@${CONFIG_SERVER_HOST:localhost}:${CONFIG_SERVER_PORT:8012}
 
+  kafka:
+    bootstrap-servers: ${kafka-user.bootstrap-servers}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.UUIDSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+    consumer:
+      group-id: ${spring.application.name}
+      key-deserializer: org.apache.kafka.common.serialization.UUIDDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "org.mrshoffen.tasktracker.commons.kafka.event.*"
+
+
   liquibase:
     url: jdbc:postgresql://${postgres-user.server.url}:${postgres-user.server.port}/${postgres-user.server.database}
 

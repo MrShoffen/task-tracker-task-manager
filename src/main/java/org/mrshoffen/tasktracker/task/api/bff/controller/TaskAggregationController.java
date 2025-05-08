@@ -2,6 +2,7 @@ package org.mrshoffen.tasktracker.task.api.bff.controller;
 
 
 import lombok.RequiredArgsConstructor;
+import org.mrshoffen.tasktracker.commons.web.dto.DeskResponseDto;
 import org.mrshoffen.tasktracker.commons.web.dto.TaskResponseDto;
 import org.mrshoffen.tasktracker.task.api.bff.service.TaskAggregationService;
 import org.mrshoffen.tasktracker.task.model.dto.links.TaskDtoLinksInjector;
@@ -25,10 +26,18 @@ public class TaskAggregationController {
 
     private final TaskAggregationService taskService;
 
-    @GetMapping("/{workspaceId}/tasks/full")
+    @GetMapping("/{workspaceId}/tasks")
     Flux<TaskResponseDto> getAllTasksInWorkspace(@PathVariable("workspaceId") UUID workspaceId) {
         return taskService
                 .getAllTasksInWorkspace(workspaceId)
+                .map(linksInjector::injectLinks);
+    }
+
+    @GetMapping("/{workspaceId}/desks/{deskId}/tasks")
+    Flux<TaskResponseDto> getAllTasksInDesk(@PathVariable("workspaceId") UUID workspaceId,
+                                            @PathVariable("deskId") UUID deskId) {
+        return taskService
+                .getAllTasksInDesk(workspaceId, deskId)
                 .map(linksInjector::injectLinks);
     }
 

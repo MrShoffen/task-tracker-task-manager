@@ -32,6 +32,12 @@ public class TaskDtoLinksInjector extends LinksInjector<TaskResponseDto> {
                         .andMethod("GET")
                         .build()
                 )
+                .addLink(Link.forName("deleteTask")
+                        .andHref(apiPrefix + "/workspaces/%s/desks/%s/tasks/%s"
+                                .formatted(dto.getWorkspaceId(), dto.getDeskId(), dto.getId()))
+                        .andMethod("DELETE")
+                        .build()
+                )
                 .build();
 
     }
