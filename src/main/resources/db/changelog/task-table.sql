@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS tasks
     name           VARCHAR(256) NOT NULL,
     created_at     TIMESTAMP    NOT NULL,
     completed      BOOLEAN      NOT NULL,
+    order_index    BIGINT       NOT NULL,
     user_id        UUID         NOT NULL,
     workspace_id   UUID         NOT NULL,
     desk_id        UUID         NOT NULL,

@@ -5,12 +5,14 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.mrshoffen.tasktracker.commons.web.dto.TaskResponseDto;
 import org.mrshoffen.tasktracker.task.api.external.service.ExternalTaskService;
+import org.mrshoffen.tasktracker.task.model.dto.OrderIndexUpdateDto;
 import org.mrshoffen.tasktracker.task.model.dto.TaskCreateDto;
 import org.mrshoffen.tasktracker.task.model.dto.links.TaskDtoLinksInjector;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -69,6 +71,19 @@ public class ExternalTaskController {
         return taskService
                 .deleteUserTaskById(userId, workspaceId, deskId, taskId)
                 .then(Mono.just(ResponseEntity.noContent().build()));
+    }
+
+    @PatchMapping("/{taskId}/order")
+    Mono<TaskResponseDto> updateTaskOrder(@RequestHeader(AUTHORIZED_USER_HEADER_NAME) UUID userId,
+                                          @PathVariable("workspaceId") UUID workspaceId,
+                                          @PathVariable("deskId") UUID deskId,
+                                          @PathVariable("taskId") UUID taskId,
+                                          @Valid @RequestBody Mono<OrderIndexUpdateDto> updateDto) {
+        return updateDto
+                .flatMap(dto ->
+                        taskService.updateTaskOrder(userId, workspaceId, deskId, taskId, dto)
+                )
+                .map(linksInjector::injectLinks);
     }
 
 }

@@ -32,6 +32,9 @@ public class Task {
     @Column("created_at")
     private Instant createdAt = Instant.now();
 
+    @Column("order_index")
+    private Long orderIndex;
+
     @Column("user_id")
     private UUID userId;
 
