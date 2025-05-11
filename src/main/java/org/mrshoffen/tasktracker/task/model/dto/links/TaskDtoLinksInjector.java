@@ -32,6 +32,18 @@ public class TaskDtoLinksInjector extends LinksInjector<TaskResponseDto> {
                         .andMethod("GET")
                         .build()
                 )
+                .addLink(Link.forName("addComment")
+                        .andHref(apiPrefix + "/workspaces/%s/desks/%s/tasks/%s/comments"
+                                .formatted(dto.getWorkspaceId(), dto.getDeskId(), dto.getId()))
+                        .andMethod("POST")
+                        .build()
+                )
+                .addLink(Link.forName("allComments")
+                        .andHref(apiPrefix + "/workspaces/%s/desks/%s/tasks/%s/comments"
+                                .formatted(dto.getWorkspaceId(), dto.getDeskId(), dto.getId()))
+                        .andMethod("GET")
+                        .build()
+                )
                 .addLink(Link.forName("updateTaskOrder")
                         .andHref(apiPrefix + "/workspaces/%s/desks/%s/tasks/%s/order"
                                 .formatted(dto.getWorkspaceId(), dto.getDeskId(), dto.getId()))

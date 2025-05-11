@@ -1,13 +1,14 @@
-package org.mrshoffen.tasktracker.task.api.external.controller;
+package org.mrshoffen.tasktracker.task.controller;
 
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.mrshoffen.tasktracker.commons.web.dto.TaskResponseDto;
-import org.mrshoffen.tasktracker.task.api.external.service.ExternalTaskService;
 import org.mrshoffen.tasktracker.task.model.dto.OrderIndexUpdateDto;
 import org.mrshoffen.tasktracker.task.model.dto.TaskCreateDto;
 import org.mrshoffen.tasktracker.task.model.dto.links.TaskDtoLinksInjector;
+import org.mrshoffen.tasktracker.task.service.PermissionsService;
+import org.mrshoffen.tasktracker.task.service.TaskService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,6 +26,7 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 import static org.mrshoffen.tasktracker.commons.web.authentication.AuthenticationAttributes.AUTHORIZED_USER_HEADER_NAME;
+import static org.mrshoffen.tasktracker.commons.web.permissions.Permission.*;
 
 /**
  * Эндпоинты доступные внешнему клиенту (через gateway)
@@ -36,16 +38,21 @@ public class ExternalTaskController {
 
     private final TaskDtoLinksInjector linksInjector;
 
-    private final ExternalTaskService taskService;
+    private final TaskService taskService;
+
+    private final PermissionsService permissionsService;
 
     @PostMapping
     Mono<ResponseEntity<TaskResponseDto>> createTask(@RequestHeader(AUTHORIZED_USER_HEADER_NAME) UUID userId,
                                                      @Valid @RequestBody Mono<TaskCreateDto> taskCreateDto,
                                                      @PathVariable("workspaceId") UUID workspaceId,
                                                      @PathVariable("deskId") UUID deskId) {
-        return taskCreateDto
-                .flatMap(dto ->
-                        taskService.createTaskOnUserDesk(dto, userId, workspaceId, deskId)
+        return permissionsService
+                .verifyUserPermission(userId, workspaceId, CREATE_TASK)
+                .then(
+                        taskCreateDto
+                                .flatMap(dto ->
+                                        taskService.createTaskOnUserDesk(dto, userId, workspaceId, deskId))
                 )
                 .map(linksInjector::injectLinks)
                 .map(createdTask ->
@@ -58,8 +65,11 @@ public class ExternalTaskController {
     Flux<TaskResponseDto> getAllTasksInDesk(@RequestHeader(AUTHORIZED_USER_HEADER_NAME) UUID userId,
                                             @PathVariable("workspaceId") UUID workspaceId,
                                             @PathVariable("deskId") UUID deskId) {
-        return taskService
-                .getAllTasksOnUsersDesk(userId, workspaceId, deskId)
+        return permissionsService
+                .verifyUserPermission(userId, workspaceId, READ_WORKSPACE_CONTENT)
+                .thenMany(taskService
+                        .getAllTasksOnUsersDesk(workspaceId, deskId)
+                )
                 .map(linksInjector::injectLinks);
     }
 
@@ -68,8 +78,11 @@ public class ExternalTaskController {
                                                   @PathVariable("workspaceId") UUID workspaceId,
                                                   @PathVariable("deskId") UUID deskId,
                                                   @PathVariable("taskId") UUID taskId) {
-        return taskService
-                .deleteUserTaskById(userId, workspaceId, deskId, taskId)
+        return permissionsService
+                .verifyUserPermission(userId, workspaceId, DELETE_TASK)
+                .then(taskService
+                        .deleteUserTaskById(workspaceId, taskId)
+                )
                 .then(Mono.just(ResponseEntity.noContent().build()));
     }
 
@@ -79,9 +92,11 @@ public class ExternalTaskController {
                                           @PathVariable("deskId") UUID deskId,
                                           @PathVariable("taskId") UUID taskId,
                                           @Valid @RequestBody Mono<OrderIndexUpdateDto> updateDto) {
-        return updateDto
-                .flatMap(dto ->
-                        taskService.updateTaskOrder(userId, workspaceId, deskId, taskId, dto)
+        return permissionsService
+                .verifyUserPermission(userId, workspaceId, UPDATE_TASK)
+                .then(updateDto
+                        .flatMap(dto ->
+                                taskService.updateTaskOrder(workspaceId, taskId,  dto))
                 )
                 .map(linksInjector::injectLinks);
     }

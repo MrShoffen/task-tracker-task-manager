@@ -3,9 +3,6 @@ discovery-service-user:
   server:
     hostname: localhost
     port: 8010
-  credentials:
-    username: user
-    password: pass
 #
 postgres-user:
   server:
@@ -29,8 +26,6 @@ app:
 spring:
   application:
     name: task-manager-rs
-  profiles:
-    active: discovery-service-user, postgres-user
   config:
     import: optional:configserver:http://${CONFIG_SERVER_USER}:${CONFIG_SERVER_PASSWORD}@${CONFIG_SERVER_HOST:localhost}:${CONFIG_SERVER_PORT:8012}
 
