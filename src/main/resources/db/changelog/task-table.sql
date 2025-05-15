@@ -12,6 +12,5 @@ CREATE TABLE IF NOT EXISTS tasks
     user_id        UUID         NOT NULL,
     workspace_id   UUID         NOT NULL,
     desk_id        UUID         NOT NULL,
-    parent_task_id UUID,
     UNIQUE (desk_id, name)
 );

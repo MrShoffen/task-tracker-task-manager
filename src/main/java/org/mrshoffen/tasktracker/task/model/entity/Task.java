@@ -35,6 +35,12 @@ public class Task {
     @Column("order_index")
     private Long orderIndex;
 
+    @Column("color")
+    private String color;
+
+    @Column("cover_url")
+    private String coverUrl;
+
     @Column("user_id")
     private UUID userId;
 
@@ -43,7 +49,4 @@ public class Task {
 
     @Column("desk_id")
     private UUID deskId;
-
-    @Column("parent_task_id")
-    private UUID parentTaskId;
 }

@@ -50,6 +50,18 @@ public class TaskDtoLinksInjector extends LinksInjector<TaskResponseDto> {
                         .andMethod("PATCH")
                         .build()
                 )
+                .addLink(Link.forName("updateTaskCompletion")
+                        .andHref(apiPrefix + "/workspaces/%s/desks/%s/tasks/%s/completion"
+                                .formatted(dto.getWorkspaceId(), dto.getDeskId(), dto.getId()))
+                        .andMethod("PATCH")
+                        .build()
+                )
+                .addLink(Link.forName("updateTaskName")
+                        .andHref(apiPrefix + "/workspaces/%s/desks/%s/tasks/%s/name"
+                                .formatted(dto.getWorkspaceId(), dto.getDeskId(), dto.getId()))
+                        .andMethod("PATCH")
+                        .build()
+                )
                 .addLink(Link.forName("deleteTask")
                         .andHref(apiPrefix + "/workspaces/%s/desks/%s/tasks/%s"
                                 .formatted(dto.getWorkspaceId(), dto.getDeskId(), dto.getId()))

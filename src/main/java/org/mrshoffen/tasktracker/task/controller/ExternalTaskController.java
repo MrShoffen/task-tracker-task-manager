@@ -4,8 +4,12 @@ package org.mrshoffen.tasktracker.task.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.mrshoffen.tasktracker.commons.web.dto.TaskResponseDto;
-import org.mrshoffen.tasktracker.task.model.dto.OrderIndexUpdateDto;
-import org.mrshoffen.tasktracker.task.model.dto.TaskCreateDto;
+import org.mrshoffen.tasktracker.task.model.dto.edit.OrderIndexUpdateDto;
+import org.mrshoffen.tasktracker.task.model.dto.edit.TaskColorUpdateDto;
+import org.mrshoffen.tasktracker.task.model.dto.edit.TaskCompletionDto;
+import org.mrshoffen.tasktracker.task.model.dto.create.TaskCreateDto;
+import org.mrshoffen.tasktracker.task.model.dto.edit.TaskCoverUpdateDto;
+import org.mrshoffen.tasktracker.task.model.dto.edit.TaskNameUpdateDto;
 import org.mrshoffen.tasktracker.task.model.dto.links.TaskDtoLinksInjector;
 import org.mrshoffen.tasktracker.task.service.PermissionsService;
 import org.mrshoffen.tasktracker.task.service.TaskService;
@@ -96,7 +100,67 @@ public class ExternalTaskController {
                 .verifyUserPermission(userId, workspaceId, UPDATE_TASK)
                 .then(updateDto
                         .flatMap(dto ->
-                                taskService.updateTaskOrder(workspaceId, taskId,  dto))
+                                taskService.updateTaskOrder(workspaceId, taskId, dto))
+                )
+                .map(linksInjector::injectLinks);
+    }
+
+    @PatchMapping("/{taskId}/completion")
+    Mono<TaskResponseDto> updateTaskCompletion(@RequestHeader(AUTHORIZED_USER_HEADER_NAME) UUID userId,
+                                               @PathVariable("workspaceId") UUID workspaceId,
+                                               @PathVariable("deskId") UUID deskId,
+                                               @PathVariable("taskId") UUID taskId,
+                                               @RequestBody Mono<TaskCompletionDto> updateDto) {
+        return permissionsService
+                .verifyUserPermission(userId, workspaceId, UPDATE_TASK)
+                .then(updateDto
+                        .flatMap(dto ->
+                                taskService.updateTaskCompletion(workspaceId, taskId, dto))
+                )
+                .map(linksInjector::injectLinks);
+    }
+
+    @PatchMapping("/{taskId}/name")
+    Mono<TaskResponseDto> updateTaskName(@RequestHeader(AUTHORIZED_USER_HEADER_NAME) UUID userId,
+                                         @PathVariable("workspaceId") UUID workspaceId,
+                                         @PathVariable("deskId") UUID deskId,
+                                         @PathVariable("taskId") UUID taskId,
+                                         @Valid @RequestBody Mono<TaskNameUpdateDto> updateDto) {
+        return permissionsService
+                .verifyUserPermission(userId, workspaceId, UPDATE_TASK)
+                .then(updateDto
+                        .flatMap(dto ->
+                                taskService.updateTaskName(workspaceId, taskId, dto))
+                )
+                .map(linksInjector::injectLinks);
+    }
+
+    @PatchMapping("/{taskId}/color")
+    Mono<TaskResponseDto> updateTaskColor(@RequestHeader(AUTHORIZED_USER_HEADER_NAME) UUID userId,
+                                          @PathVariable("workspaceId") UUID workspaceId,
+                                          @PathVariable("deskId") UUID deskId,
+                                          @PathVariable("taskId") UUID taskId,
+                                          @Valid @RequestBody Mono<TaskColorUpdateDto> updateDto) {
+        return permissionsService
+                .verifyUserPermission(userId, workspaceId, UPDATE_TASK)
+                .then(updateDto
+                        .flatMap(dto ->
+                                taskService.updateTaskColor(workspaceId, taskId, dto))
+                )
+                .map(linksInjector::injectLinks);
+    }
+
+    @PatchMapping("/{taskId}/cover")
+    Mono<TaskResponseDto> updateTaskCover(@RequestHeader(AUTHORIZED_USER_HEADER_NAME) UUID userId,
+                                          @PathVariable("workspaceId") UUID workspaceId,
+                                          @PathVariable("deskId") UUID deskId,
+                                          @PathVariable("taskId") UUID taskId,
+                                          @Valid @RequestBody Mono<TaskCoverUpdateDto> updateDto) {
+        return permissionsService
+                .verifyUserPermission(userId, workspaceId, UPDATE_TASK)
+                .then(updateDto
+                        .flatMap(dto ->
+                                taskService.updateTaskCover(workspaceId, taskId, dto))
                 )
                 .map(linksInjector::injectLinks);
     }

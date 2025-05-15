@@ -1,4 +1,4 @@
-package org.mrshoffen.tasktracker.task.model.dto;
+package org.mrshoffen.tasktracker.task.model.dto.create;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

@@ -6,11 +6,16 @@ import org.mrshoffen.tasktracker.commons.web.exception.EntityAlreadyExistsExcept
 import org.mrshoffen.tasktracker.commons.web.exception.EntityNotFoundException;
 import org.mrshoffen.tasktracker.task.event.TaskEventPublisher;
 import org.mrshoffen.tasktracker.task.mapper.TaskMapper;
-import org.mrshoffen.tasktracker.task.model.dto.OrderIndexUpdateDto;
-import org.mrshoffen.tasktracker.task.model.dto.TaskCreateDto;
+import org.mrshoffen.tasktracker.task.model.dto.edit.OrderIndexUpdateDto;
+import org.mrshoffen.tasktracker.task.model.dto.edit.TaskColorUpdateDto;
+import org.mrshoffen.tasktracker.task.model.dto.edit.TaskCompletionDto;
+import org.mrshoffen.tasktracker.task.model.dto.create.TaskCreateDto;
+import org.mrshoffen.tasktracker.task.model.dto.edit.TaskCoverUpdateDto;
+import org.mrshoffen.tasktracker.task.model.dto.edit.TaskNameUpdateDto;
 import org.mrshoffen.tasktracker.task.model.entity.Task;
 import org.mrshoffen.tasktracker.task.repository.TaskRepository;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -69,23 +74,6 @@ public class TaskService {
                 .flatMap(taskRepository::delete);
     }
 
-    public Mono<TaskResponseDto> updateTaskOrder(UUID workspaceId,
-                                                 UUID taskId, OrderIndexUpdateDto updateDto) {
-        return taskRepository
-                .findByWorkspaceIdAndId(workspaceId,taskId)
-                .switchIfEmpty(
-                        Mono.error(new EntityNotFoundException(
-                                "Задача с id %s не найдена в данном пространстве"
-                                        .formatted(taskId.toString())
-                        ))
-                )
-                .flatMap(task -> {
-                    task.setOrderIndex(updateDto.updatedIndex());
-                    return taskRepository.save(task);
-                })
-                .map(taskMapper::toTaskResponse);
-    }
-
     public Mono<Void> deleteAllTasksInWorkspace(UUID workspaceId) {
         return taskRepository
                 .deleteAllByWorkspaceId(workspaceId);
@@ -101,6 +89,71 @@ public class TaskService {
         return taskRepository
                 .findAllByWorkspaceId(workspaceId)
                 .map(taskMapper::toTaskResponse);
+    }
+
+    public Mono<TaskResponseDto> updateTaskOrder(UUID workspaceId,
+                                                 UUID taskId, OrderIndexUpdateDto updateDto) {
+        return findTaskOrThrow(workspaceId, taskId)
+                .flatMap(task -> {
+                    task.setOrderIndex(updateDto.updatedIndex());
+                    return taskRepository.save(task);
+                })
+                .map(taskMapper::toTaskResponse);
+    }
+
+    public Mono<TaskResponseDto> updateTaskCompletion(UUID workspaceId,
+                                                      UUID taskId, TaskCompletionDto updateDto) {
+        return findTaskOrThrow(workspaceId, taskId)
+                .flatMap(task -> {
+                    task.setCompleted(updateDto.getCompleted());
+                    return taskRepository.save(task);
+                })
+                .map(taskMapper::toTaskResponse);
+    }
+
+    public Mono<TaskResponseDto> updateTaskName(UUID workspaceId, UUID taskId, TaskNameUpdateDto dto) {
+        return findTaskOrThrow(workspaceId, taskId)
+                .flatMap(task -> {
+                    task.setName(dto.getNewName());
+                    return taskRepository.save(task);
+                })
+                .onErrorMap(DuplicateKeyException.class, e ->
+                        new EntityAlreadyExistsException(
+                                "Задача с именем '%s' уже существует"
+                                        .formatted(dto.getNewName())
+                        )
+                )
+                .map(taskMapper::toTaskResponse);
+    }
+
+    public Mono<TaskResponseDto> updateTaskColor(UUID workspaceId, UUID taskId, TaskColorUpdateDto dto) {
+        return findTaskOrThrow(workspaceId, taskId)
+                .flatMap(task -> {
+                    task.setColor(dto.newColor());
+                    return taskRepository.save(task);
+                })
+                .map(taskMapper::toTaskResponse);
+    }
+
+    public Mono<TaskResponseDto> updateTaskCover(UUID workspaceId, UUID taskId, TaskCoverUpdateDto dto) {
+        return findTaskOrThrow(workspaceId, taskId)
+                .flatMap(task -> {
+                    task.setCoverUrl(dto.newCoverUrl());
+                    return taskRepository.save(task);
+                })
+                .map(taskMapper::toTaskResponse);
+    }
+
+
+    private Mono<Task> findTaskOrThrow(UUID workspaceId, UUID taskId) {
+        return taskRepository
+                .findByWorkspaceIdAndId(workspaceId, taskId)
+                .switchIfEmpty(
+                        Mono.error(new EntityNotFoundException(
+                                "Задача с id %s не найдена в данном пространстве"
+                                        .formatted(taskId.toString())
+                        ))
+                );
     }
 
 }
