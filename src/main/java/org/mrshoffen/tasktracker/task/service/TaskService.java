@@ -105,7 +105,7 @@ public class TaskService {
                                                       UUID taskId, TaskCompletionDto updateDto) {
         return findTaskOrThrow(workspaceId, taskId)
                 .flatMap(task -> {
-                    task.setCompleted(updateDto.getCompleted());
+                    task.setCompleted(updateDto.completed());
                     return taskRepository.save(task);
                 })
                 .map(taskMapper::toTaskResponse);
@@ -114,13 +114,13 @@ public class TaskService {
     public Mono<TaskResponseDto> updateTaskName(UUID workspaceId, UUID taskId, TaskNameUpdateDto dto) {
         return findTaskOrThrow(workspaceId, taskId)
                 .flatMap(task -> {
-                    task.setName(dto.getNewName());
+                    task.setName(dto.newName());
                     return taskRepository.save(task);
                 })
                 .onErrorMap(DuplicateKeyException.class, e ->
                         new EntityAlreadyExistsException(
                                 "Задача с именем '%s' уже существует"
-                                        .formatted(dto.getNewName())
+                                        .formatted(dto.newName())
                         )
                 )
                 .map(taskMapper::toTaskResponse);
