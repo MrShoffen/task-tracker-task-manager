@@ -6,12 +6,8 @@ import org.mrshoffen.tasktracker.commons.web.exception.EntityAlreadyExistsExcept
 import org.mrshoffen.tasktracker.commons.web.exception.EntityNotFoundException;
 import org.mrshoffen.tasktracker.task.event.TaskEventPublisher;
 import org.mrshoffen.tasktracker.task.mapper.TaskMapper;
-import org.mrshoffen.tasktracker.task.model.dto.edit.OrderIndexUpdateDto;
-import org.mrshoffen.tasktracker.task.model.dto.edit.TaskColorUpdateDto;
-import org.mrshoffen.tasktracker.task.model.dto.edit.TaskCompletionDto;
 import org.mrshoffen.tasktracker.task.model.dto.create.TaskCreateDto;
-import org.mrshoffen.tasktracker.task.model.dto.edit.TaskCoverUpdateDto;
-import org.mrshoffen.tasktracker.task.model.dto.edit.TaskNameUpdateDto;
+import org.mrshoffen.tasktracker.task.model.dto.edit.*;
 import org.mrshoffen.tasktracker.task.model.entity.Task;
 import org.mrshoffen.tasktracker.task.repository.TaskRepository;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -145,6 +141,31 @@ public class TaskService {
     }
 
 
+    public Mono<TaskResponseDto> updateDesk(UUID workspaceId, UUID deskId, UUID taskId, DeskEditDto dto) {
+        return taskRepository
+                .findByWorkspaceIdAndDeskIdAndId(workspaceId, deskId, taskId)
+                .switchIfEmpty(
+                        Mono.error(new EntityNotFoundException(
+                                "Задача с id %s не найдена в данном пространстве и доске"
+                                        .formatted(taskId.toString())
+                        ))
+                )
+                .flatMap(task -> {
+                    task.setDeskId(dto.newDeskId());
+                    return taskRepository
+                            .findMaxOrderIndexInDesk(dto.newDeskId())
+                            .flatMap(newOrd -> {
+                                task.setOrderIndex(next(newOrd));
+                                return taskRepository.save(task);
+                            });
+                })
+                .onErrorMap(DuplicateKeyException.class, e ->
+                        new EntityAlreadyExistsException(
+                                "Задач уже существует в данной доске")
+                )
+                .map(taskMapper::toTaskResponse);
+    }
+
     private Mono<Task> findTaskOrThrow(UUID workspaceId, UUID taskId) {
         return taskRepository
                 .findByWorkspaceIdAndId(workspaceId, taskId)
@@ -155,5 +176,4 @@ public class TaskService {
                         ))
                 );
     }
-
 }

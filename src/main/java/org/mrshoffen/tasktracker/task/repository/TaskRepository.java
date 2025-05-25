@@ -14,15 +14,16 @@ public interface TaskRepository extends ReactiveCrudRepository<Task, UUID> {
     @Query("SELECT COALESCE(MAX(t.order_index), 0) FROM tasks t WHERE t.desk_id = :deskId")
     Mono<Long> findMaxOrderIndexInDesk(@Param("deskId") UUID deskId);
 
-
     Flux<Task> findAllByWorkspaceId(UUID workspaceId);
 
     Flux<Task> findAllByWorkspaceIdAndDeskId(UUID workspaceId, UUID deskId);
 
-    Mono<Void> deleteAllByWorkspaceId( UUID workspaceId);
+    Mono<Void> deleteAllByWorkspaceId(UUID workspaceId);
 
-    Mono<Void> deleteAllByWorkspaceIdAndDeskId( UUID workspaceId, UUID deskId);
+    Mono<Void> deleteAllByWorkspaceIdAndDeskId(UUID workspaceId, UUID deskId);
 
     Mono<Task> findByWorkspaceIdAndId(UUID workspaceId, UUID taskId);
+
+    Mono<Task> findByWorkspaceIdAndDeskIdAndId(UUID workspaceId, UUID deskId, UUID taskId);
 
 }
