@@ -62,6 +62,10 @@ spring:
     url: r2dbc:postgresql://${postgres-user.server.url}:${postgres-user.server.port}/${postgres-user.server.database}
     username: ${postgres-user.credentials.username}
     password: ${postgres-user.credentials.password}
+    pool:
+      initial-size: 2
+      max-size: 10
+      max-acquire-time: 15s
 
 server.port: ${PORT:0}
 
