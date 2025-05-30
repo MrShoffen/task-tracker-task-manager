@@ -5,13 +5,25 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.mrshoffen.tasktracker.commons.web.dto.TaskResponseDto;
 import org.mrshoffen.tasktracker.task.model.dto.create.TaskCreateDto;
-import org.mrshoffen.tasktracker.task.model.dto.edit.*;
-import org.mrshoffen.tasktracker.task.model.dto.links.TaskDtoLinksInjector;
+import org.mrshoffen.tasktracker.task.model.dto.edit.DeskEditDto;
+import org.mrshoffen.tasktracker.task.model.dto.edit.OrderIndexUpdateDto;
+import org.mrshoffen.tasktracker.task.model.dto.edit.TaskColorUpdateDto;
+import org.mrshoffen.tasktracker.task.model.dto.edit.TaskCompletionDto;
+import org.mrshoffen.tasktracker.task.model.dto.edit.TaskCoverUpdateDto;
+import org.mrshoffen.tasktracker.task.model.dto.edit.TaskNameUpdateDto;
 import org.mrshoffen.tasktracker.task.service.PermissionsService;
 import org.mrshoffen.tasktracker.task.service.TaskService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -28,8 +40,6 @@ import static org.mrshoffen.tasktracker.commons.web.permissions.Permission.*;
 @RequestMapping("/workspaces/{workspaceId}/desks/{deskId}/tasks")
 public class ExternalTaskController {
 
-    private final TaskDtoLinksInjector linksInjector;
-
     private final TaskService taskService;
 
     private final PermissionsService permissionsService;
@@ -41,12 +51,9 @@ public class ExternalTaskController {
                                                      @PathVariable("deskId") UUID deskId) {
         return permissionsService
                 .verifyUserPermission(userId, workspaceId, CREATE_TASK)
-                .then(
-                        taskCreateDto
-                                .flatMap(dto ->
-                                        taskService.createTaskOnUserDesk(dto, userId, workspaceId, deskId))
+                .then(taskCreateDto.flatMap(dto ->
+                        taskService.createTaskOnUserDesk(dto, userId, workspaceId, deskId))
                 )
-                .map(linksInjector::injectLinks)
                 .map(createdTask ->
                         ResponseEntity.status(HttpStatus.CREATED)
                                 .body(createdTask)
@@ -61,8 +68,7 @@ public class ExternalTaskController {
                 .verifyUserPermission(userId, workspaceId, READ_WORKSPACE_CONTENT)
                 .thenMany(taskService
                         .getAllTasksOnUsersDesk(workspaceId, deskId)
-                )
-                .map(linksInjector::injectLinks);
+                );
     }
 
     @DeleteMapping("/{taskId}")
@@ -88,9 +94,8 @@ public class ExternalTaskController {
                 .verifyUserPermission(userId, workspaceId, UPDATE_TASK_ORDER)
                 .then(updateDto
                         .flatMap(dto ->
-                                taskService.updateTaskOrder(workspaceId, taskId, dto))
-                )
-                .map(linksInjector::injectLinks);
+                                taskService.updateTaskOrder(workspaceId, taskId, dto, userId))
+                );
     }
 
     @PatchMapping("/{taskId}/completion")
@@ -103,9 +108,8 @@ public class ExternalTaskController {
                 .verifyUserPermission(userId, workspaceId, UPDATE_TASK_COMPLETION)
                 .then(updateDto
                         .flatMap(dto ->
-                                taskService.updateTaskCompletion(workspaceId, taskId, dto))
-                )
-                .map(linksInjector::injectLinks);
+                                taskService.updateTaskCompletion(workspaceId, taskId, dto, userId))
+                );
     }
 
     @PatchMapping("/{taskId}/name")
@@ -118,9 +122,8 @@ public class ExternalTaskController {
                 .verifyUserPermission(userId, workspaceId, UPDATE_TASK_NAME)
                 .then(updateDto
                         .flatMap(dto ->
-                                taskService.updateTaskName(workspaceId, taskId, dto))
-                )
-                .map(linksInjector::injectLinks);
+                                taskService.updateTaskName(workspaceId, taskId, dto, userId))
+                );
     }
 
     @PatchMapping("/{taskId}/desk")
@@ -133,9 +136,8 @@ public class ExternalTaskController {
                 .verifyUserPermission(userId, workspaceId, UPDATE_TASK_DESK)
                 .then(updateDto
                         .flatMap(dto ->
-                                taskService.updateDesk(workspaceId, deskId, taskId, dto))
-                )
-                .map(linksInjector::injectLinks);
+                                taskService.updateDesk(workspaceId, deskId, taskId, dto, userId))
+                );
     }
 
     @PatchMapping("/{taskId}/color")
@@ -148,9 +150,8 @@ public class ExternalTaskController {
                 .verifyUserPermission(userId, workspaceId, UPDATE_TASK_COLOR)
                 .then(updateDto
                         .flatMap(dto ->
-                                taskService.updateTaskColor(workspaceId, taskId, dto))
-                )
-                .map(linksInjector::injectLinks);
+                                taskService.updateTaskColor(workspaceId, taskId, dto, userId))
+                );
     }
 
     @PatchMapping("/{taskId}/cover")
@@ -163,9 +164,8 @@ public class ExternalTaskController {
                 .verifyUserPermission(userId, workspaceId, UPDATE_TASK_COVER)
                 .then(updateDto
                         .flatMap(dto ->
-                                taskService.updateTaskCover(workspaceId, taskId, dto))
-                )
-                .map(linksInjector::injectLinks);
+                                taskService.updateTaskCover(workspaceId, taskId, dto, userId))
+                );
     }
 
 }

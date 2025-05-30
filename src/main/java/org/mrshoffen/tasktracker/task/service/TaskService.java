@@ -29,6 +29,7 @@ public class TaskService {
     private final TaskRepository taskRepository;
 
     private final TaskEventPublisher eventPublisher;
+    private final TaskEventPublisher taskEventPublisher;
 
     public Mono<TaskResponseDto> createTaskOnUserDesk(TaskCreateDto dto, UUID userId, UUID workspaceId, UUID deskId) {
         return taskRepository
@@ -44,7 +45,8 @@ public class TaskService {
                                         .formatted(dto.name(), deskId)
                         )
                 )
-                .map(taskMapper::toTaskResponse);
+                .map(taskMapper::toTaskResponse)
+                .doOnSuccess(eventPublisher::publishTaskCreatedEvent);
     }
 
     public Flux<TaskResponseDto> getAllTasksOnUsersDesk(UUID workspaceId, UUID deskId) {
@@ -88,26 +90,32 @@ public class TaskService {
     }
 
     public Mono<TaskResponseDto> updateTaskOrder(UUID workspaceId,
-                                                 UUID taskId, OrderIndexUpdateDto updateDto) {
+                                                 UUID taskId, OrderIndexUpdateDto updateDto, UUID userId) {
         return findTaskOrThrow(workspaceId, taskId)
                 .flatMap(task -> {
                     task.setOrderIndex(updateDto.updatedIndex());
                     return taskRepository.save(task);
                 })
-                .map(taskMapper::toTaskResponse);
+                .map(taskMapper::toTaskResponse)
+                .doOnSuccess(task -> taskEventPublisher
+                        .publishTaskUpdatedEvent(workspaceId, task.getDeskId(), taskId, "orderIndex",
+                                updateDto.updatedIndex(), userId));
     }
 
     public Mono<TaskResponseDto> updateTaskCompletion(UUID workspaceId,
-                                                      UUID taskId, TaskCompletionDto updateDto) {
+                                                      UUID taskId, TaskCompletionDto updateDto, UUID userId) {
         return findTaskOrThrow(workspaceId, taskId)
                 .flatMap(task -> {
                     task.setCompleted(updateDto.completed());
                     return taskRepository.save(task);
                 })
-                .map(taskMapper::toTaskResponse);
+                .map(taskMapper::toTaskResponse)
+                .doOnSuccess(task -> taskEventPublisher
+                        .publishTaskUpdatedEvent(workspaceId, task.getDeskId(), taskId, "completed",
+                                updateDto.completed(), userId));
     }
 
-    public Mono<TaskResponseDto> updateTaskName(UUID workspaceId, UUID taskId, TaskNameUpdateDto dto) {
+    public Mono<TaskResponseDto> updateTaskName(UUID workspaceId, UUID taskId, TaskNameUpdateDto dto, UUID userId) {
         return findTaskOrThrow(workspaceId, taskId)
                 .flatMap(task -> {
                     task.setName(dto.newName());
@@ -119,31 +127,40 @@ public class TaskService {
                                         .formatted(dto.newName())
                         )
                 )
-                .map(taskMapper::toTaskResponse);
+                .map(taskMapper::toTaskResponse)
+                .doOnSuccess(task -> taskEventPublisher
+                        .publishTaskUpdatedEvent(workspaceId, task.getDeskId(), taskId, "name",
+                                dto.newName(), userId));
     }
 
-    public Mono<TaskResponseDto> updateTaskColor(UUID workspaceId, UUID taskId, TaskColorUpdateDto dto) {
+    public Mono<TaskResponseDto> updateTaskColor(UUID workspaceId, UUID taskId, TaskColorUpdateDto dto, UUID userId) {
         return findTaskOrThrow(workspaceId, taskId)
                 .flatMap(task -> {
                     task.setColor(dto.newColor());
                     return taskRepository.save(task);
                 })
-                .map(taskMapper::toTaskResponse);
+                .map(taskMapper::toTaskResponse)
+                .doOnSuccess(task -> taskEventPublisher
+                        .publishTaskUpdatedEvent(workspaceId, task.getDeskId(), taskId, "color",
+                                dto.newColor(), userId));
     }
 
-    public Mono<TaskResponseDto> updateTaskCover(UUID workspaceId, UUID taskId, TaskCoverUpdateDto dto) {
+    public Mono<TaskResponseDto> updateTaskCover(UUID workspaceId, UUID taskId, TaskCoverUpdateDto dto, UUID userId) {
         return findTaskOrThrow(workspaceId, taskId)
                 .flatMap(task -> {
                     task.setCoverUrl(dto.newCoverUrl());
                     return taskRepository.save(task);
                 })
-                .map(taskMapper::toTaskResponse);
+                .map(taskMapper::toTaskResponse)
+                .doOnSuccess(task -> taskEventPublisher
+                        .publishTaskUpdatedEvent(workspaceId, task.getDeskId(), taskId, "coverUrl",
+                                dto.newCoverUrl(), userId));
     }
 
 
-    public Mono<TaskResponseDto> updateDesk(UUID workspaceId, UUID deskId, UUID taskId, DeskEditDto dto) {
+    public Mono<TaskResponseDto> updateDesk(UUID workspaceId, UUID oldDesk, UUID taskId, DeskEditDto dto, UUID userId) {
         return taskRepository
-                .findByWorkspaceIdAndDeskIdAndId(workspaceId, deskId, taskId)
+                .findByWorkspaceIdAndDeskIdAndId(workspaceId, oldDesk, taskId)
                 .switchIfEmpty(
                         Mono.error(new EntityNotFoundException(
                                 "Задача с id %s не найдена в данном пространстве и доске"
@@ -163,7 +180,10 @@ public class TaskService {
                         new EntityAlreadyExistsException(
                                 "Задач уже существует в данной доске")
                 )
-                .map(taskMapper::toTaskResponse);
+                .map(taskMapper::toTaskResponse)
+                .doOnSuccess(task -> taskEventPublisher
+                        .publishTaskUpdatedEvent(workspaceId, oldDesk, taskId, "deskId",
+                                dto.newDeskId(), userId));
     }
 
     private Mono<Task> findTaskOrThrow(UUID workspaceId, UUID taskId) {

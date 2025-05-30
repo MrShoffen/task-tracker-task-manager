@@ -20,7 +20,7 @@ import static org.springframework.http.HttpStatus.*;
 
 @Slf4j
 @RestControllerAdvice
-public class DeskControllerAdvice {
+public class TaskControllerAdvice {
 
     @ExceptionHandler(WebExchangeBindException.class)
     public Mono<ResponseEntity<ProblemDetail>> handleValidationErrors(WebExchangeBindException e) {

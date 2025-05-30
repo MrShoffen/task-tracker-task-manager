@@ -3,7 +3,6 @@ package org.mrshoffen.tasktracker.task.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.mrshoffen.tasktracker.commons.web.dto.TaskResponseDto;
-import org.mrshoffen.tasktracker.task.model.dto.links.TaskDtoLinksInjector;
 import org.mrshoffen.tasktracker.task.service.TaskService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,23 +20,19 @@ import java.util.UUID;
 @RequestMapping("/aggregate-api/workspaces")
 public class TaskAggregationController {
 
-    private final TaskDtoLinksInjector linksInjector;
-
     private final TaskService taskService;
 
     @GetMapping("/{workspaceId}/tasks")
     Flux<TaskResponseDto> getAllTasksInWorkspace(@PathVariable("workspaceId") UUID workspaceId) {
         return taskService
-                .getAllTasksInWorkspace(workspaceId)
-                .map(linksInjector::injectLinks);
+                .getAllTasksInWorkspace(workspaceId);
     }
 
     @GetMapping("/{workspaceId}/desks/{deskId}/tasks")
     Flux<TaskResponseDto> getAllTasksInDesk(@PathVariable("workspaceId") UUID workspaceId,
                                             @PathVariable("deskId") UUID deskId) {
         return taskService
-                .getAllTasksOnUsersDesk(workspaceId, deskId)
-                .map(linksInjector::injectLinks);
+                .getAllTasksOnUsersDesk(workspaceId, deskId);
     }
 
 }
