@@ -15,6 +15,6 @@ CREATE TABLE IF NOT EXISTS tasks
     UNIQUE (desk_id, name)
 );
 
-CREATE INDEX IF NOT EXISTS tasks_workspace_id_id_idx ON desks (workspace_id, id);
+CREATE INDEX IF NOT EXISTS tasks_workspace_id_id_idx ON tasks (workspace_id, id);
 
-CREATE INDEX IF NOT EXISTS tasks_workspace_id_idx ON desks (workspace_id);
+CREATE INDEX IF NOT EXISTS tasks_workspace_id_idx ON tasks (workspace_id);
